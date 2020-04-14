@@ -13,18 +13,18 @@ namespace doingit2_repo
     {
         private readonly IMongoDatabase _mongoDb;
 
-        public Collection(IMongoDatabase mongoDb)
+        public Collection([NotNull] IMongoDatabase mongoDb)
         {
             _mongoDb = mongoDb;
         }
 
         /// <summary>
-        /// 
+        /// Insert new document
         /// </summary>
         /// <param name="document"></param>
         /// <returns>_id of inserted document</returns>
         [return: NotNull]
-        public async Task<string?> CreateAsync(T document)
+        public virtual async Task<string?> CreateAsync(T document)
         {
             var typeName = typeof(T).Name;
             var collection = _mongoDb.GetCollection<T>(typeName);

@@ -1,36 +1,23 @@
 ﻿using doingit2_repo.Models;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace doingit2_repo
 {
-    public class SingletonCollection<T> : ICollection<T> where T : Document
+    public class SingletonCollection<T> : Collection<T> where T : Document
     {
-        public Task<string?> CreateAsync(T item)
-        {
-            throw new NotImplementedException();
-        }
+        public SingletonCollection(IMongoDatabase mongoDb) : base(mongoDb) { }
 
-        public Task<bool> DeleteAsync(T item)
+        [return: NotNull]
+        public async override Task<string?> CreateAsync(T item)
         {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<T> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<T?> ReadOrDefaultAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(T item)
-        {
-            throw new NotImplementedException();
+            if (GetAll().Any()) throw new InvalidOperationException();
+            return await base.CreateAsync(item);
         }
     }
 }

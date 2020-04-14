@@ -11,26 +11,22 @@ namespace test_doingit2_repo
 {
     public class a_collection_should
     {
-        private readonly string DATABASE = "doingit2";
-        private readonly string SETTINGS = "settings";
-
-        private IMongoDatabase _mongoDb;
+        private static readonly string DATABASE = "doingit2";
+        private readonly IMongoDatabase _mongoDb = new MongoClient().GetDatabase(DATABASE);
 
         [SetUp]
         public void Setup()
         {
-            var mongoClient = new MongoClient();
-            _mongoDb = mongoClient.GetDatabase(DATABASE); // will create if not exists
         }
 
         [Test]
         public async Task add_a_document()
         {
             // arrange
-            var collection = new Collection<Board>(_mongoDb);
+            var collection = new Collection<TestDocument>(_mongoDb);
 
             // act
-            var id = await collection.CreateAsync(new Board());
+            var id = await collection.CreateAsync(new TestDocument());
 
             // assert
             Assert.IsTrue(!string.IsNullOrWhiteSpace(id));
@@ -41,7 +37,7 @@ namespace test_doingit2_repo
         public async Task read_a_document_that_exists()
         {
             // arrange
-            var collection = new Collection<Board>(_mongoDb);
+            var collection = new Collection<TestDocument>(_mongoDb);
             var anyDoc = collection.GetAll().FirstOrDefault();
             Assert.IsNotNull(anyDoc);
             var id = anyDoc.Id;
@@ -58,12 +54,12 @@ namespace test_doingit2_repo
         public async Task return_null_when_no_doc()
         {
             // arrange
-            var collection = new Collection<Board>(_mongoDb);
-
-            // act
+            var collection = new Collection<TestDocument>(_mongoDb);
             byte[] buffer = new byte[12];
             new Random().NextBytes(buffer);
             var randomId = string.Concat(buffer.Select(x => x.ToString("X2")).ToArray());
+
+            // act
             var doc = await collection.ReadOrDefaultAsync(randomId);
 
             // assert
@@ -74,28 +70,28 @@ namespace test_doingit2_repo
         public async Task update_an_existing_document()
         {
             // arrange
-            var collection = new Collection<Board>(_mongoDb);
-            var board = new Board();
-            var id = await collection.CreateAsync(board);
+            var collection = new Collection<TestDocument>(_mongoDb);
+            var testDoc = new TestDocument();
+            var id = await collection.CreateAsync(testDoc);
 
             // act
-            board.Monday = new[] { "Empty dishwasher" };
-            await collection.UpdateAsync(board);
+            testDoc.Secret = "ssh";
+            await collection.UpdateAsync(testDoc);
 
             // assert
-            board = await collection.ReadOrDefaultAsync(board.Id);
-            Assert.AreEqual("Empty dishwasher", board.Monday[0]);
+            testDoc = await collection.ReadOrDefaultAsync(testDoc.Id);
+            Assert.AreEqual("ssh", testDoc.Secret);
         }
 
         [Test]
         public async Task throw_exception_if_update_non_existent_document()
         {
             // arrange
-            var collection = new Collection<Board>(_mongoDb);
-            var board = new Board();
+            var collection = new Collection<TestDocument>(_mongoDb);
+            var testDoc = new TestDocument();
 
             // act
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await collection.UpdateAsync(board));
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => await collection.UpdateAsync(testDoc));
         }
     }
 }
